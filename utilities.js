@@ -5,24 +5,39 @@ import slugify from '@sindresorhus/slugify';
 
 const npmOrganizationRegex = /^@[a-z\d][\w-.]+\/?$/i;
 
-export async function checkNames(name) {
-	const result = await npmNameMany(name);
+async function createPackageInfo(name, isAvailable) {
+	const packageInfo = {
+		name,
+		isAvailable,
+		isOrganization: npmOrganizationRegex.test(name),
+	};
 
-	const names = await Promise.all([...result].map(async ([name, isAvailable]) => {
-		const returnValue = {name, isAvailable, isOrganization: npmOrganizationRegex.test(name)};
-
-		if (!isAvailable && !returnValue.isOrganization) {
-			try {
-				returnValue.isSquatter = await squatter(name);
-			} catch {
-				returnValue.isSquatter = false;
-			}
+	if (!isAvailable && !packageInfo.isOrganization) {
+		try {
+			packageInfo.isSquatter = await squatter(name);
+		} catch {
+			packageInfo.isSquatter = false;
 		}
+	}
 
-		return returnValue;
+	return packageInfo;
+}
+
+export async function checkNames(names) {
+	return Promise.all(names.map(async name => {
+		try {
+			const result = await npmNameMany([name]);
+			const [, isAvailable] = [...result][0];
+			return createPackageInfo(name, isAvailable);
+		} catch (error) {
+			return {
+				name,
+				isAvailable: false,
+				isOrganization: npmOrganizationRegex.test(name),
+				error: error.message || 'Failed to check name availability',
+			};
+		}
 	}));
-
-	return names;
 }
 
 export async function getSimilarPackages({name, isOrganization}) {
@@ -31,7 +46,7 @@ export async function getSimilarPackages({name, isOrganization}) {
 		return [];
 	}
 
-	const slugNames = similarNames.map(name => `${isOrganization ? '@' : ''}` + slugify(name.toLowerCase()));
+	const slugNames = similarNames.map(similarName => `${isOrganization ? '@' : ''}${slugify(similarName.toLowerCase())}`);
 	const similarPackages = await checkNames(slugNames);
 
 	return similarPackages.filter(package_ => package_.isAvailable);

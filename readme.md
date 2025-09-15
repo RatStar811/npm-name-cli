@@ -46,7 +46,7 @@ $ npm-name --help
     ✖ @sindresorhus/is is unavailable
     ✔ unicorn-cake is available
 
-  Exits with code 0 when all names are available or 2 when any names are taken
+  Exits with code 0 when all names are available or squatted, or code 2 when any names are taken or have errors
 ```
 
 ## FAQ
@@ -76,4 +76,4 @@ $ npm-name --help
 
 ## Related
 
-- [npm-name](https://github.com/sindresorhus/npm-name) - API for this module
+- [npm-name](https://github.com/sindresorhus/npm-name) - API for this package

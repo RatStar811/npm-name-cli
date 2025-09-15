@@ -47,3 +47,9 @@ test('is not available in similar search', async t => {
 	t.is(exitCode, 2);
 	t.regex(stdout, /is unavailable(.*)Similar names(.*)is available/s);
 });
+
+test('handles invalid package names gracefully', async t => {
+	const {stdout, exitCode} = await t.throwsAsync(execa('./cli.js', ['invalid!!!', randomName(), '--color']));
+	t.is(exitCode, 2);
+	t.regex(stdout, /Failed to check name availability(.*)is available/s);
+});

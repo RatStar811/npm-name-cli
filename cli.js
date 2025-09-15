@@ -41,7 +41,7 @@ const cli = meow(
 	  ${logSymbols.error} ${chalk.bold('@sindresorhus/is')} is unavailable
 	  ${logSymbols.success} ${chalk.bold('unicorn-cake')} is available
 
-	Exits with code 0 when all names are available or 2 when any names are taken
+	Exits with code 0 when all names are available or squatted, or code 2 when any names are taken or have errors
 	`,
 	{
 		importMeta: import.meta,
@@ -66,7 +66,9 @@ function log(package_) {
 		? terminalLink(styledName, `https://www.npmjs.com/org/${package_.name.slice(1)}`)
 		: terminalLink(styledName, `https://www.npmjs.com/package/${package_.name}`);
 
-	if (package_.isAvailable) {
+	if (package_.error) {
+		console.log(`${logSymbols.error} ${styledName} - ${chalk.red(package_.error)}`);
+	} else if (package_.isAvailable) {
 		console.log(`${logSymbols.success} ${styledName} is available`);
 	} else if (package_.isSquatter) {
 		console.log(`${logSymbols.warning} ${linkedName} is squatted`);
